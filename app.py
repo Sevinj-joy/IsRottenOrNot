@@ -1,43 +1,43 @@
-import streamlit as st
+import os
+import gdown
 import tensorflow as tf
 from PIL import Image, ImageOps
 import numpy as np
+import streamlit as st
 
-# Modeli yüklə
-model = tf.keras.models.load_model('fruit_model.h5')
+MODEL_PATH = 'fruit_model.h5'
+# Google Drive file id:
+FILE_ID = '1ChHrbdN-3w8d-sjI8gv16zvSn57tMJxa'
+URL = f'https://drive.google.com/uc?id={FILE_ID}'
 
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        st.write("Model yüklənir, bir az gözləyin...")
+        gdown.download(URL, MODEL_PATH, quiet=False)
+        st.write("Model yükləndi!")
 
-# Funksiya şəkili preprocess etmək üçün (modelin gözlədiyi input ölçüsünə görə dəyişə bilər)
+download_model()
+
+model = tf.keras.models.load_model(MODEL_PATH)
+
 def preprocess_image(image: Image.Image, target_size=(224, 224)):
-    # RGB-ə çevir
     if image.mode != 'RGB':
         image = image.convert('RGB')
-    # Şəkili resize et
     image = ImageOps.fit(image, target_size, Image.ANTIALIAS)
-    # Numpy arrayə çevir və normallaşdır
     img_array = np.array(image) / 255.0
-    # Batch dimension əlavə et
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
-
-# Streamlit app
-st.title("Fruit Quality Detection")
-st.write("Yüklədiyiniz şəkilə əsasən meyvənin sağlam və ya xarab olduğunu müəyyən edir.")
+st.title("Meyvə keyfiyyəti təyini")
 
 uploaded_file = st.file_uploader("JPG şəkil yüklə", type=["jpg", "jpeg"])
 
 if uploaded_file is not None:
-    # Şəkili aç
     image = Image.open(uploaded_file)
     st.image(image, caption='Yüklədiyiniz şəkil', use_column_width=True)
 
-    # Şəkili hazırlamaq
-    input_arr = preprocess_image(image, target_size=(224, 224))  # ölçünü modelə uyğun dəyiş
-
-    # Proqnoz ver
-    prediction = model.predict(input_arr)[0]  # [0] - batch üçün
-    # Tutaq ki, model 2 sinifli (0 = Rotten, 1 = Good)
+    input_arr = preprocess_image(image, target_size=(224, 224))
+    prediction = model.predict(input_arr)[0]
 
     rotten_prob = prediction[0]
     good_prob = prediction[1]
@@ -50,4 +50,4 @@ if uploaded_file is not None:
         confidence = rotten_prob
 
     st.markdown(f"**Nəticə:** {label}")
-    st.markdown(f"**Əminlik faizi:** {confidence * 100:.2f}%")
+    st.markdown(f"**Əminlik faizi:** {confidence*100:.2f}%")
