@@ -5,16 +5,14 @@ from PIL import Image, ImageOps
 import numpy as np
 import streamlit as st
 
-MODEL_PATH = 'fruit_model.h5'
-# Google Drive file id:
-FILE_ID = '1ChHrbdN-3w8d-sjI8gv16zvSn57tMJxa'
-URL = f'https://drive.google.com/uc?id={FILE_ID}'
+import gdown
+
+FILE_ID = "1ChHrbdN-3w8d-sjI8gv16zvSn57tMJxa"
+URL = f"https://drive.google.com/uc?id={FILE_ID}"
+MODEL_PATH = "fruit_model.h5"
 
 def download_model():
-    if not os.path.exists(MODEL_PATH):
-        st.write("Model yüklənir, bir az gözləyin...")
-        gdown.download(URL, MODEL_PATH, quiet=False)
-        st.write("Model yükləndi!")
+    gdown.download(URL, MODEL_PATH, quiet=False)
 
 download_model()
 
