@@ -20,7 +20,7 @@ download_model()
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Modelin input ölçüsünü avtomatik götür
-input_shape = model.input_shape[1:3]  # (height, width)
+input_shape = model.input_shape[1:3]
 
 def preprocess_image(image: Image.Image):
     if image.mode != 'RGB':
@@ -40,10 +40,14 @@ if uploaded_file is not None:
     st.image(image, caption='Yüklədiyiniz şəkil', use_column_width=True)
 
     input_arr = preprocess_image(image)
-    prediction = model.predict(input_arr)[0]
+    prediction = model.predict(input_arr)[0]  # məsələn: [0.87]
 
-    rotten_prob = prediction[0]
-    good_prob = prediction[1]
+    if len(prediction) == 1:  # Binary sigmoid çıxış
+        rotten_prob = prediction[0]
+        good_prob = 1 - rotten_prob
+    else:  # Softmax çıxış (2 ehtimal)
+        rotten_prob = prediction[0]
+        good_prob = prediction[1]
 
     if good_prob > rotten_prob:
         label = "Good (Sağlam)"
